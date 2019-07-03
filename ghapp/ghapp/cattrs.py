@@ -3,6 +3,7 @@ import distutils.util
 
 import attr
 import cattr
+import sys
 
 def maybe_parse_bool(obj, cls):
     if isinstance(obj, (str, bytes)):
@@ -51,7 +52,11 @@ def _register_ignore_optional_none(cls, converter=None):
     prev_unstructure = converter._unstructure_func.dispatch(cls)
     optional_attrs = {
         f.name for f in attr.fields(cls)
-        if isinstance(f.type, typing._Union) and type(None) in f.type.__args__
+        if sys.version_info[0] <= 3 and sys.version_info[1] < 7:
+            if isinstance(f.type, typing._Union) and type(None) in f.type.__args__
+        else:
+            if isinstance(f.type, typing._GenericAlias) and type(None) in f.type.__args__
+            
     }
 
     def unstructure_ignoring_optional_none(obj):
