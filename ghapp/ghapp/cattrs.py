@@ -50,14 +50,17 @@ def _register_ignore_optional_none(cls, converter=None):
         raise TypeError("class does not have attrs: %s" % cls)
 
     prev_unstructure = converter._unstructure_func.dispatch(cls)
-    optional_attrs = {
-        f.name for f in attr.fields(cls)
-        if sys.version_info[0] <= 3 and sys.version_info[1] < 7:
+    if (sys.version_info[0] <= 3) and (sys.version_info[1] < 7):
+        optional_attrs = {
+            f.name for f in attr.fields(cls)
             if isinstance(f.type, typing._Union) and type(None) in f.type.__args__
-        else:
+        }
+    else:
+        optional_attrs = {
+            f.name for f in attr.fields(cls)
             if isinstance(f.type, typing._GenericAlias) and type(None) in f.type.__args__
-            
-    }
+
+        }
 
     def unstructure_ignoring_optional_none(obj):
         unstructured = prev_unstructure(obj)
